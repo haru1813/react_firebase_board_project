@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB 설계도 - React Firebase 게시판 프로젝트</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 4px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-left: 10px;
+            border-left: 4px solid #3498db;
+        }
+        h3 {
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .collection {
+            background: #f8f9fa;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        .collection-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover { background: #f5f5f5; }
+        .field-type {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 3px;
+        }
+        .required {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .index {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .diagram {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .relationship {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>데이터베이스 설계도</h1>
+        <p><strong>프로젝트명:</strong> React Firebase 게시판 프로젝트</p>
+        <p><strong>데이터베이스:</strong> Firebase Firestore</p>
+        <p><strong>버전:</strong> 1.0.0</p>
+        <p><strong>작성일:</strong> 2024</p>
+
+        <div class="note">
+            <strong>참고:</strong> Firebase Firestore는 NoSQL 문서 데이터베이스입니다. 
+            데이터는 컬렉션(Collection)과 문서(Document)로 구성되며, 각 문서는 키-값 쌍으로 저장됩니다.
+        </div>
+
+        <h2>1. 데이터베이스 구조 개요</h2>
+        <div class="diagram">
+users (Collection)
+  └── {userId} (Document)
+      ├── email: string
+      ├── displayName: string
+      ├── createdAt: timestamp
+      └── updatedAt: timestamp
+
+posts (Collection)
+  └── {postId} (Document)
+      ├── title: string
+      ├── content: string
+      ├── authorId: string (Reference to users)
+      ├── authorName: string
+      ├── createdAt: timestamp
+      ├── updatedAt: timestamp
+      ├── views: number
+      └── likes: number
+
+comments (Collection)
+  └── {commentId} (Document)
+      ├── postId: string (Reference to posts)
+      ├── authorId: string (Reference to users)
+      ├── authorName: string
+      ├── content: string
+      ├── createdAt: timestamp
+      └── updatedAt: timestamp
+        </div>
+
+        <h2>2. 컬렉션 상세 설계</h2>
+
+        <div class="collection">
+            <div class="collection-name">users</div>
+            <p><strong>설명:</strong> 사용자 정보를 저장하는 컬렉션</p>
+            <p><strong>인증:</strong> Firebase Authentication과 연동</p>
+            
+            <h4>문서 구조</h4>
+            <table>
+                <tr>
+                    <th>필드명</th>
+                    <th>타입</th>
+                    <th>필수</th>
+                    <th>설명</th>
+                    <th>인덱스</th>
+                </tr>
+                <tr>
+                    <td>email</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>사용자 이메일 주소 (고유값)</td>
+                    <td><span class="index">단일 인덱스</span></td>
+                </tr>
+                <tr>
+                    <td>displayName</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>사용자 표시 이름</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>createdAt</td>
+                    <td><span class="field-type">timestamp</span></td>
+                    <td class="required">✓</td>
+                    <td>계정 생성 일시</td>
+                    <td><span class="index">단일 인덱스</span></td>
+                </tr>
+                <tr>
+                    <td>updatedAt</td>
+                    <td><span class="field-type">timestamp</span></td>
+                    <td class="required">✓</td>
+                    <td>정보 수정 일시</td>
+                    <td>-</td>
+                </tr>
+            </table>
+
+            <h4>문서 ID</h4>
+            <p>문서 ID는 Firebase Authentication의 UID를 사용합니다.</p>
+
+            <h4>보안 규칙 예시</h4>
+            <div class="code-block">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+            </div>
+        </div>
+
+        <div class="collection">
+            <div class="collection-name">posts</div>
+            <p><strong>설명:</strong> 게시글 정보를 저장하는 컬렉션</p>
+            
+            <h4>문서 구조</h4>
+            <table>
+                <tr>
+                    <th>필드명</th>
+                    <th>타입</th>
+                    <th>필수</th>
+                    <th>설명</th>
+                    <th>인덱스</th>
+                </tr>
+                <tr>
+                    <td>title</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>게시글 제목 (최대 200자)</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>content</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>게시글 내용</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>authorId</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>작성자 UID (users 컬렉션 참조)</td>
+                    <td><span class="index">단일 인덱스</span></td>
+                </tr>
+                <tr>
+                    <td>authorName</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>작성자 이름 (데이터 정규화를 위해 저장)</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>createdAt</td>
+                    <td><span class="field-type">timestamp</span></td>
+                    <td class="required">✓</td>
+                    <td>게시글 작성 일시</td>
+                    <td><span class="index">단일 인덱스 (내림차순)</span></td>
+                </tr>
+                <tr>
+                    <td>updatedAt</td>
+                    <td><span class="field-type">timestamp</span></td>
+                    <td class="required">✓</td>
+                    <td>게시글 수정 일시</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>views</td>
+                    <td><span class="field-type">number</span></td>
+                    <td class="required">✓</td>
+                    <td>조회수 (기본값: 0)</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>likes</td>
+                    <td><span class="field-type">number</span></td>
+                    <td class="required">✓</td>
+                    <td>좋아요 수 (기본값: 0)</td>
+                    <td>-</td>
+                </tr>
+            </table>
+
+            <h4>복합 인덱스</h4>
+            <table>
+                <tr>
+                    <th>인덱스명</th>
+                    <th>필드</th>
+                    <th>정렬</th>
+                    <th>용도</th>
+                </tr>
+                <tr>
+                    <td>posts_createdAt_desc</td>
+                    <td>createdAt</td>
+                    <td>내림차순</td>
+                    <td>최신 게시글 조회</td>
+                </tr>
+                <tr>
+                    <td>posts_authorId_createdAt</td>
+                    <td>authorId, createdAt</td>
+                    <td>오름차순, 내림차순</td>
+                    <td>사용자별 게시글 조회</td>
+                </tr>
+            </table>
+
+            <h4>보안 규칙 예시</h4>
+            <div class="code-block">
+match /posts/{postId} {
+  allow read: if request.auth != null;
+  allow create: if request.auth != null 
+                && request.resource.data.authorId == request.auth.uid;
+  allow update: if request.auth != null 
+                && resource.data.authorId == request.auth.uid;
+  allow delete: if request.auth != null 
+                && resource.data.authorId == request.auth.uid;
+}
+            </div>
+        </div>
+
+        <div class="collection">
+            <div class="collection-name">comments</div>
+            <p><strong>설명:</strong> 게시글 댓글을 저장하는 컬렉션 (선택사항)</p>
+            
+            <h4>문서 구조</h4>
+            <table>
+                <tr>
+                    <th>필드명</th>
+                    <th>타입</th>
+                    <th>필수</th>
+                    <th>설명</th>
+                    <th>인덱스</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>게시글 ID (posts 컬렉션 참조)</td>
+                    <td><span class="index">단일 인덱스</span></td>
+                </tr>
+                <tr>
+                    <td>authorId</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>댓글 작성자 UID</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>authorName</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>댓글 작성자 이름</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>content</td>
+                    <td><span class="field-type">string</span></td>
+                    <td class="required">✓</td>
+                    <td>댓글 내용</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>createdAt</td>
+                    <td><span class="field-type">timestamp</span></td>
+                    <td class="required">✓</td>
+                    <td>댓글 작성 일시</td>
+                    <td><span class="index">단일 인덱스</span></td>
+                </tr>
+                <tr>
+                    <td>updatedAt</td>
+                    <td><span class="field-type">timestamp</span></td>
+                    <td class="required">✓</td>
+                    <td>댓글 수정 일시</td>
+                    <td>-</td>
+                </tr>
+            </table>
+
+            <h4>복합 인덱스</h4>
+            <table>
+                <tr>
+                    <th>인덱스명</th>
+                    <th>필드</th>
+                    <th>정렬</th>
+                    <th>용도</th>
+                </tr>
+                <tr>
+                    <td>comments_postId_createdAt</td>
+                    <td>postId, createdAt</td>
+                    <td>오름차순, 오름차순</td>
+                    <td>게시글별 댓글 조회</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>3. 데이터 관계도</h2>
+        <div class="relationship">
+            <h3>관계 설명</h3>
+            <ul>
+                <li><strong>users ↔ posts:</strong> 1:N 관계 (한 사용자는 여러 게시글 작성 가능)</li>
+                <li><strong>posts ↔ comments:</strong> 1:N 관계 (한 게시글에 여러 댓글 작성 가능)</li>
+                <li><strong>users ↔ comments:</strong> 1:N 관계 (한 사용자는 여러 댓글 작성 가능)</li>
+            </ul>
+        </div>
+
+        <h2>4. 데이터 모델 예시</h2>
+        
+        <h3>users 컬렉션 예시</h3>
+        <div class="code-block">
+{
+  "users": {
+    "user123": {
+      "email": "user@example.com",
+      "displayName": "홍길동",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  }
+}
+        </div>
+
+        <h3>posts 컬렉션 예시</h3>
+        <div class="code-block">
+{
+  "posts": {
+    "post123": {
+      "title": "게시글 제목",
+      "content": "게시글 내용입니다.",
+      "authorId": "user123",
+      "authorName": "홍길동",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z",
+      "views": 10,
+      "likes": 5
+    }
+  }
+}
+        </div>
+
+        <h2>5. 쿼리 최적화 전략</h2>
+        <ul>
+            <li><strong>페이지네이션:</strong> limit()와 startAfter()를 사용하여 페이지네이션 구현</li>
+            <li><strong>인덱스 활용:</strong> 자주 사용되는 쿼리 패턴에 맞춰 복합 인덱스 생성</li>
+            <li><strong>데이터 정규화:</strong> authorName을 posts에 저장하여 조인 없이 조회 가능</li>
+            <li><strong>캐싱:</strong> 클라이언트 측에서 자주 조회되는 데이터 캐싱</li>
+        </ul>
+
+        <h2>6. 보안 규칙 요약</h2>
+        <div class="code-block">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 사용자는 자신의 정보만 수정 가능
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 게시글은 인증된 사용자만 읽기 가능, 작성자만 수정/삭제 가능
+    match /posts/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null 
+                    && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if request.auth != null 
+                            && resource.data.authorId == request.auth.uid;
+    }
+    
+    // 댓글은 인증된 사용자만 읽기 가능, 작성자만 수정/삭제 가능
+    match /comments/{commentId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null 
+                            && resource.data.authorId == request.auth.uid;
+    }
+  }
+}
+        </div>
+    </div>
+</body>
+</html>
+
